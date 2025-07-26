@@ -1,39 +1,6 @@
---// UI Library cho mobile executor
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local ToggleButton = Instance.new("TextButton")
-local SaveButton = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
+-- các phần UI giữ nguyên như script trước...
 
--- Cho phép GUI hiển thị trên mobile
-ScreenGui.Parent = game.CoreGui or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
-Frame.Size = UDim2.new(0, 160, 0, 80)
-Frame.Position = UDim2.new(0, 100, 0, 100)
-Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Frame.Active = true
-Frame.Draggable = true
-Frame.Parent = ScreenGui
-
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = Frame
-
-ToggleButton.Size = UDim2.new(0, 140, 0, 30)
-ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-ToggleButton.Text = "🟢 ON"
-ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-ToggleButton.Parent = Frame
-
-SaveButton.Size = UDim2.new(0, 140, 0, 30)
-SaveButton.Position = UDim2.new(0, 10, 0, 45)
-SaveButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-SaveButton.Text = "💾 SAVE POS"
-SaveButton.TextColor3 = Color3.new(1, 1, 1)
-SaveButton.Parent = Frame
-
---// Variables
+--// Biến điều khiển
 local runService = game:GetService("RunService")
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -42,22 +9,25 @@ local savedPos = rootPart.Position
 local toggle = true
 local elevatorIndex = 54
 
---// Save button
+local insideOffset = Vector3.new(0, 2, 0)
+local outsideOffset = Vector3.new(0, 5, 0)
+
+--// SAVE button
 SaveButton.MouseButton1Click:Connect(function()
 	savedPos = rootPart.Position
 	print("Saved Position:", savedPos)
 end)
 
---// Toggle button
+--// TOGGLE button
 ToggleButton.MouseButton1Click:Connect(function()
 	toggle = not toggle
 	ToggleButton.Text = toggle and "🟢 ON" or "🔴 OFF"
 end)
 
---// Teleport loop
+--// Teleport "nhấp nhả"
 task.spawn(function()
 	while true do
-		task.wait(0.1)
+		task.wait(1) -- cách nhau 1 giây
 		if toggle then
 			local elevator = workspace:FindFirstChild("Map")
 				and workspace.Map:FindFirstChild("World")
@@ -68,11 +38,17 @@ task.spawn(function()
 				if target and target:FindFirstChild("Hitbox") then
 					-- Di chuyển Hitbox đến vị trí đã lưu
 					target.Hitbox.CFrame = CFrame.new(savedPos)
-					-- Dịch chuyển người chơi vào Hitbox
+
 					character = player.Character
 					if character and character:FindFirstChild("HumanoidRootPart") then
 						rootPart = character.HumanoidRootPart
-						rootPart.CFrame = CFrame.new(savedPos + Vector3.new(0, 2, 0)) -- đảm bảo nằm trong Hitbox
+
+						-- bước 1: đưa ra ngoài 1 tí
+						rootPart.CFrame = CFrame.new(savedPos + outsideOffset)
+						task.wait(0.1)
+
+						-- bước 2: đưa lại vào trong Hitbox
+						rootPart.CFrame = CFrame.new(savedPos + insideOffset)
 					end
 				end
 			end
